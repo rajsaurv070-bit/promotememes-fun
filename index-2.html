@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PromoteMemes.fun</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0b0916;
+    --surface: #161229;
+    --surface-2: #211a3a;
+    --line: #2b2447;
+    --text: #f4f0ff;
+    --muted: #a69fc4;
+    --accent: #8b5cf6;
+    --accent-2: #5b3fc4;
+    --up: #4ade80;
+    --down: #f87171;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Space Grotesk", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+  main { max-width: 560px; margin: 0 auto; padding: 32px 16px 24px; }
+  h1 { font-size: 2rem; line-height: 1.1; margin: 0 0 8px; letter-spacing: -0.02em; }
+  h2 { margin: 0 0 12px; font-size: 1.4rem; }
+  .sub { color: var(--muted); margin: 0 0 24px; max-width: 46ch; }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  label { display: block; font-weight: 500; margin: 0 0 6px; }
+  input, select {
+    width: 100%;
+    background: #0b0916;
+    color: var(--text);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 14px;
+    font: inherit;
+    margin-bottom: 16px;
+  }
+  input::placeholder { color: #6f6890; }
+  input:focus-visible, select:focus-visible, button:focus-visible, a:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  button {
+    width: 100%;
+    border: 0;
+    border-radius: 12px;
+    padding: 14px;
+    font: inherit;
+    font-weight: 700;
+    color: #fff;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    cursor: pointer;
+  }
+  button.secondary { background: var(--surface-2); border: 1px solid var(--line); margin-bottom: 14px; }
+  button:disabled { opacity: .6; cursor: wait; }
+  .msg {
+    background: var(--surface-2);
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin: 14px 0 0;
+  }
+  .msg.error { color: #fecaca; }
+  .note { color: var(--muted); font-size: .9rem; margin: 14px 0 0; }
+  .pay { margin: 0 0 16px; }
+  .pay p { margin: 0 0 8px; }
+  .pay .addr-row { display: flex; gap: 8px; align-items: stretch; }
+  .pay code {
+    flex: 1;
+    background: #0b0916;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 10px 12px;
+    font-size: .85rem;
+    word-break: break-all;
+    display: block;
+  }
+  .pay .copy { width: auto; padding: 0 16px; }
+  .preview h2 { margin: 0 0 4px; font-size: 1.25rem; }
+  .preview .addr { color: var(--muted); font-size: .85rem; word-break: break-all; margin: 0 0 14px; }
+  .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 0 0 16px; }
+  .stats div { background: #0b0916; border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; }
+  .stats dt { color: var(--muted); font-size: .8rem; }
+  .stats dd { margin: 2px 0 0; font-weight: 700; }
+  .up { color: var(--up); }
+  .down { color: var(--down); }
+  .link { display: inline-block; color: var(--accent); font-weight: 500; }
+  .recent-meta { color: var(--muted); margin: 0 0 4px; }
+  .recent-list { list-style: none; margin: 0; padding: 0; }
+  .recent-list li { padding: 10px 0; border-top: 1px solid var(--line); }
+  .recent-list li:first-child { border-top: 0; }
+  .recent-list .t { font-weight: 500; }
+  .recent-list .a { color: var(--muted); font-size: .8rem; word-break: break-all; }
+  .ticker { display: flex; flex-wrap: wrap; gap: 8px 20px; color: var(--muted); }
+  .ticker b { color: var(--text); font-weight: 500; }
+  footer { color: var(--muted); font-size: .85rem; text-align: center; padding: 8px 0 0; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<main>
+  <h1>PromoteMemes.fun</h1>
+  <p class="sub">Paste a token address to check it and preview how your listing will look.</p>
+
+  <section class="card" aria-label="Create listing">
+    <button id="wallet-btn" type="button" class="secondary">Connect wallet</button>
+
+    <form id="check-form" novalidate>
+      <label for="mint">Token / Mint Address</label>
+      <input id="mint" name="mint" type="text" placeholder="Paste token address" autocomplete="off" spellcheck="false">
+
+      <label for="pkg">Listing package</label>
+      <select id="pkg" name="pkg">
+        <option value="0.25|0">15 minutes — Free (0 SOL)</option>
+        <option value="1|0.1">1 hour — 0.1 SOL</option>
+        <option value="3|0.3">3 hours — 0.3 SOL</option>
+        <option value="6|0.5">6 hours — 0.5 SOL</option>
+        <option value="24|1">24 hours — 1 SOL</option>
+      </select>
+
+      <div id="pay" class="pay" hidden>
+        <p>Send <b id="pay-amount"></b> SOL to this address:</p>
+        <div class="addr-row">
+          <code id="pay-addr"></code>
+          <button id="copy-btn" type="button" class="copy">Copy</button>
+        </div>
+      </div>
+
+      <label for="tname">Optional token name</label>
+      <input id="tname" name="tname" type="text" placeholder="Token name" autocomplete="off">
+
+      <button id="check-btn" type="submit">Check token &amp; preview listing</button>
+    </form>
+
+    <div id="status" class="msg" role="status" aria-live="polite" hidden></div>
+
+    <p class="note">Prototype: listings are saved only in this browser. Paid packages are displayed for planning only; payment verification and promotion timers are not active yet. Never enter a seed phrase or private key.</p>
+  </section>
+
+  <section id="preview" class="card preview" hidden aria-live="polite">
+    <h2 id="p-name"></h2>
+    <p id="p-addr" class="addr"></p>
+    <dl class="stats">
+      <div><dt>Price</dt><dd id="p-price"></dd></div>
+      <div><dt>24h change</dt><dd id="p-change"></dd></div>
+      <div><dt>Liquidity</dt><dd id="p-liq"></dd></div>
+      <div><dt>24h volume</dt><dd id="p-vol"></dd></div>
+    </dl>
+    <a id="p-link" class="link" href="#" target="_blank" rel="noopener noreferrer">View on DexScreener</a>
+  </section>
+
+  <section class="card" aria-labelledby="recent-title">
+    <h2 id="recent-title">Recently checked tokens</h2>
+    <p class="recent-meta">DexScreener data when available</p>
+    <p id="recent-empty" class="recent-meta">No tokens checked yet.</p>
+    <ul id="recent-list" class="recent-list"></ul>
+  </section>
+
+  <section class="card">
+    <div id="ticker" class="ticker" aria-label="Live prices">Loading prices…</div>
+  </section>
+
+  <footer>PromoteMemes.fun prototype · Paid payments are not active · Not financial advice · Never share your recovery phrase.</footer>
+</main>
+
+<script>
+(function () {
+  // Your Solana address that receives payments for paid packages
+  var PAY_ADDRESS = '7RGXhC84w57h6DpQ9kXuJxaYK3G1W7kiDBHy4hzECcL7';
+
+  var form = document.getElementById('check-form');
+  var mint = document.getElementById('mint');
+  var tname = document.getElementById('tname');
+  var pkg = document.getElementById('pkg');
+  var btn = document.getElementById('check-btn');
+  var statusEl = document.getElementById('status');
+  var preview = document.getElementById('preview');
+  var walletBtn = document.getElementById('wallet-btn');
+  var payBox = document.getElementById('pay');
+
+  function setStatus(msg, isError) {
+    if (!msg) { statusEl.hidden = true; statusEl.textContent = ''; return; }
+    statusEl.hidden = false;
+    statusEl.textContent = msg;
+    statusEl.className = 'msg' + (isError ? ' error' : '');
+  }
+
+  function usd(n) {
+    var v = Number(n);
+    if (!isFinite(v)) return '–';
+    if (v >= 1) return '$' + v.toLocaleString(undefined, { maximumFractionDigits: 2 });
+    return '$' + v.toPrecision(3);
+  }
+
+  function compact(n) {
+    var v = Number(n);
+    if (!isFinite(v)) return '–';
+    return '$' + v.toLocaleString(undefined, { notation: 'compact', maximumFractionDigits: 2 });
+  }
+
+  // ---------- Wallet ----------
+  function getProvider() {
+    if (window.phantom && window.phantom.solana && window.phantom.solana.isPhantom) return window.phantom.solana;
+    if (window.solflare && window.solflare.isSolflare) return window.solflare;
+    if (window.backpack && window.backpack.solana) return window.backpack.solana;
+    if (window.solana) return window.solana;
+    return null;
+  }
+
+  walletBtn.addEventListener('click', function () {
+    var provider = getProvider();
+    if (!provider) {
+      setStatus('No supported wallet was detected. Open this website in your wallet app browser, or install a compatible wallet and retry. Wallet support depends on your browser/device. Never enter your recovery phrase here.', true);
+      return;
+    }
+    provider.connect().then(function (res) {
+      var pk = (res && res.publicKey ? res.publicKey : provider.publicKey).toString();
+      walletBtn.textContent = 'Connected: ' + pk.slice(0, 4) + '…' + pk.slice(-4);
+      setStatus('', false);
+    }).catch(function () {
+      setStatus('Wallet connection was cancelled.', true);
+    });
+  });
+
+  // ---------- Package / payment address ----------
+  function updatePay() {
+    var parts = pkg.value.split('|');
+    var price = Number(parts[1]);
+    if (price > 0) {
+      document.getElementById('pay-amount').textContent = String(price);
+      document.getElementById('pay-addr').textContent = PAY_ADDRESS;
+      payBox.hidden = false;
+    } else {
+      payBox.hidden = true;
+    }
+  }
+  pkg.addEventListener('change', updatePay);
+  updatePay();
+
+  document.getElementById('copy-btn').addEventListener('click', function () {
+    var b = this;
+    function done() { b.textContent = 'Copied'; setTimeout(function () { b.textContent = 'Copy'; }, 1500); }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(PAY_ADDRESS).then(done, function () {});
+    }
+  });
+
+  // ---------- Recently checked tokens ----------
+  var KEY = 'pm_recent_tokens';
+  function loadRecent() {
+    try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch (e) { return []; }
+  }
+  function saveRecent(list) {
+    try { localStorage.setItem(KEY, JSON.stringify(list)); } catch (e) {}
+  }
+  function renderRecent() {
+    var list = loadRecent();
+    var ul = document.getElementById('recent-list');
+    ul.textContent = '';
+    document.getElementById('recent-empty').hidden = list.length > 0;
+    list.forEach(function (item) {
+      var li = document.createElement('li');
+      var t = document.createElement('div');
+      t.className = 't';
+      t.textContent = item.title + ' · ' + item.price;
+      var a = document.createElement('div');
+      a.className = 'a';
+      a.textContent = item.address;
+      li.appendChild(t);
+      li.appendChild(a);
+      ul.appendChild(li);
+    });
+  }
+  function addRecent(item) {
+    var list = loadRecent().filter(function (x) { return x.address !== item.address; });
+    list.unshift(item);
+    saveRecent(list.slice(0, 5));
+    renderRecent();
+  }
+  renderRecent();
+
+  // ---------- Token check ----------
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var address = mint.value.trim();
+    preview.hidden = true;
+
+    if (address.length < 32 || address.length > 64 || /\s/.test(address)) {
+      setStatus('Enter a valid token address.', true);
+      return;
+    }
+
+    btn.disabled = true;
+    setStatus('Checking token…', false);
+
+    fetch('https://api.dexscreener.com/latest/dex/tokens/' + encodeURIComponent(address))
+      .then(function (r) {
+        if (!r.ok) throw new Error('bad response');
+        return r.json();
+      })
+      .then(function (data) {
+        var pairs = (data && data.pairs) || [];
+        if (!pairs.length) {
+          setStatus('No trading pair found for this address on DexScreener.', true);
+          return;
+        }
+        pairs.sort(function (a, b) {
+          return ((b.liquidity && b.liquidity.usd) || 0) - ((a.liquidity && a.liquidity.usd) || 0);
+        });
+        var p = pairs[0];
+        var base = p.baseToken || {};
+        var title = tname.value.trim() || base.name || 'Unknown token';
+        if (base.symbol) title += ' (' + base.symbol + ')';
+
+        document.getElementById('p-name').textContent = title;
+        document.getElementById('p-addr').textContent = address;
+        document.getElementById('p-price').textContent = usd(p.priceUsd);
+        document.getElementById('p-liq').textContent = compact(p.liquidity && p.liquidity.usd);
+        document.getElementById('p-vol').textContent = compact(p.volume && p.volume.h24);
+
+        var ch = Number(p.priceChange && p.priceChange.h24);
+        var chEl = document.getElementById('p-change');
+        chEl.textContent = isFinite(ch) ? (ch > 0 ? '+' : '') + ch.toFixed(2) + '%' : '–';
+        chEl.className = isFinite(ch) ? (ch >= 0 ? 'up' : 'down') : '';
+
+        var link = document.getElementById('p-link');
+        if (/^https:\/\/dexscreener\.com\//.test(p.url || '')) link.href = p.url;
+
+        preview.hidden = false;
+        setStatus('', false);
+        addRecent({ title: title, address: address, price: usd(p.priceUsd) });
+      })
+      .catch(function () {
+        setStatus('Could not check this token. Try again in a moment.', true);
+      })
+      .then(function () { btn.disabled = false; });
+  });
+
+  // ---------- Price ticker ----------
+  var coins = [
+    ['bitcoin', 'BTC'],
+    ['ethereum', 'ETH'],
+    ['binancecoin', 'BNB'],
+    ['solana', 'SOL']
+  ];
+  var tickerEl = document.getElementById('ticker');
+
+  function loadPrices() {
+    var ids = coins.map(function (c) { return c[0]; }).join(',');
+    fetch('https://api.coingecko.com/api/v3/simple/price?ids=' + ids + '&vs_currencies=usd')
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        tickerEl.textContent = '';
+        coins.forEach(function (c) {
+          if (!d[c[0]]) return;
+          var span = document.createElement('span');
+          span.textContent = c[1] + ' ';
+          var b = document.createElement('b');
+          b.textContent = usd(d[c[0]].usd);
+          span.appendChild(b);
+          tickerEl.appendChild(span);
+        });
+        if (!tickerEl.children.length) tickerEl.textContent = 'Prices unavailable.';
+      })
+      .catch(function () { tickerEl.textContent = 'Prices unavailable.'; });
+  }
+
+  loadPrices();
+  setInterval(loadPrices, 60000);
+})();
+</script>
+</body>
+</html>
